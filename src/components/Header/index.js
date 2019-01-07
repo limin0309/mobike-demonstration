@@ -2,6 +2,8 @@ import React from "react";
 import { Row, Col } from "antd";
 import "./index.less";
 import Util from "../../utils/utils";
+import axios from "../../axios/index";
+
 export default class Header extends React.Component {
   constructor(props) {
     super(props);
@@ -20,7 +22,30 @@ export default class Header extends React.Component {
         sysTime
       });
     }, 1000);
+    this.getWeatherAPIData();
   }
+
+  // 调用百度天气API接口
+  getWeatherAPIData() {
+    let city = "北京";
+    axios
+      .jsonp({
+        url:
+          // 此处有一问题，当用encodeURIComponent解析的时候，会出现解析不正确，读取不出
+          // "http://api.map.baidu.com/telematics/v3/weather?location='+encodeURIComponent(city)+'&output=json&ak=3p49MVra6urFRGOT9s8UBWr2"
+          "http://api.map.baidu.com/telematics/v3/weather?location=beijing&output=json&ak=3p49MVra6urFRGOT9s8UBWr2"
+      })
+      .then(res => {
+        if (res.status == "success") {
+          let data = res.results[0].weather_data[0];
+          this.setState({
+            weather: data.weather,
+            dayPictureUrl: data.dayPictureUrl
+          });
+        }
+      });
+  }
+
   render() {
     return (
       <div className="header">
@@ -36,7 +61,10 @@ export default class Header extends React.Component {
           </Col>
           <Col span="20" className="weather">
             <span className="date">{this.state.sysTime}</span>
-            <span className="weather-detail">多云</span>
+            <span className="weather-img">
+              <img src={this.state.dayPictureUrl} alt="天气" />
+            </span>
+            <span className="weather-detail">{this.state.weather}</span>
           </Col>
         </Row>
       </div>
